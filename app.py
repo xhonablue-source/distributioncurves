@@ -2,695 +2,386 @@ import streamlit as st
 import numpy as np
 import math
 
-# Configure matplotlib for Streamlit - moved before other matplotlib imports
+# Configure matplotlib for Streamlit
 import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# Import other libraries
 from scipy import stats
 import pandas as pd
 
-# Set page config first
-st.set_page_config(page_title="MathCraft | Normal Distribution", layout="wide")
+# Set page config
+st.set_page_config(page_title="MathCraft | Interactive Normal Distribution", layout="wide")
 
-# Clear any existing matplotlib configurations and set a clean style
+# Clear matplotlib configurations
 plt.style.use('default')
 plt.rcParams.update({'figure.max_open_warning': 0})
 
-st.title("📊 MathCraft: Exploring the Normal Distribution")
+st.title("🎯 MathCraft: Interactive Normal Distribution Explorer")
 
-# Sidebar for navigation
-st.sidebar.title("Navigation")
-section = st.sidebar.selectbox("Choose a section:", [
-    "📚 Introduction", 
-    "🔍 Interactive Explorer", 
-    "🛠️ Physical Manipulatives", 
-    "🌍 Real-World Applications", 
-    "📝 Problem Solving",
-    "🧪 Hypothesis Testing"
-])
+# Main Interactive Tool
+st.header("🔧 Interactive Normal Distribution Calculator")
 
-if section == "📚 Introduction":
-    st.markdown("""
-    ### 📈 What is the Normal Distribution?
-    The **normal distribution** (also called the Gaussian distribution or bell curve) is one of the most important probability distributions in statistics. It describes how data values are distributed around a central mean value.
-    
-    **Key Characteristics:**
-    - **Bell-shaped curve** that is symmetric around the mean
-    - **Mean (μ)**: The center point of the distribution
-    - **Standard deviation (σ)**: Controls the spread or width of the curve
-    - **Total area under the curve = 1** (representing 100% probability)
-    - **68-95-99.7 Rule**: Approximately 68% of data falls within 1σ, 95% within 2σ, and 99.7% within 3σ
-    """)
-    
-    # Basic normal distribution properties table
-    st.markdown("""
-    ### 📐 Normal Distribution Properties
-    | Property | Description | Mathematical Expression |
-    |----------|-------------|------------------------|
-    | Mean (μ) | Center of the distribution | E[X] = μ |
-    | Standard Deviation (σ) | Measure of spread | σ > 0 |
-    | Variance (σ²) | Square of standard deviation | Var[X] = σ² |
-    | Probability Density Function | Formula for the curve | f(x) = (1/(σ√(2π))) × e^(-½((x-μ)/σ)²) |
-    | Standard Normal | Special case with μ=0, σ=1 | Z ~ N(0,1) |
-    """)
-    
-    # Create a basic normal distribution plot
-    try:
-        fig, ax = plt.subplots(figsize=(10, 6))
-        x = np.linspace(-4, 4, 1000)
-        y = stats.norm.pdf(x, 0, 1)
-        
-        ax.plot(x, y, 'b-', linewidth=3, label='Standard Normal (μ=0, σ=1)')
-        ax.fill_between(x, y, alpha=0.3)
-        
-        # Add vertical lines for standard deviations
-        for i in range(-3, 4):
-            ax.axvline(i, color='red', linestyle='--', alpha=0.5)
-            if i != 0:
-                ax.text(i, 0.05, f'{i}σ', ha='center', fontsize=10)
-        
-        ax.axvline(0, color='red', linestyle='-', linewidth=2, label='Mean (μ)')
-        ax.set_xlabel('Standard Deviations from Mean')
-        ax.set_ylabel('Probability Density')
-        ax.set_title('The Standard Normal Distribution')
-        ax.grid(True, alpha=0.3)
-        ax.legend()
-        
-        st.pyplot(fig)
-        plt.close(fig)  # Close figure to prevent memory issues
-    except Exception as e:
-        st.error(f"Error creating plot: {e}")
+# Create main columns for the interface
+control_col, plot_col1, plot_col2 = st.columns([1, 1, 1])
 
-elif section == "🔍 Interactive Explorer":
-    st.header("🔍 Interactive Normal Distribution Explorer")
+with control_col:
+    st.subheader("🎛️ Controls")
     
-    st.markdown("""
-    **Investigate how changing the mean (μ) and standard deviation (σ) affects the normal curve!**
-    Use the sliders below to manipulate the parameters and observe the changes.
-    """)
+    # Distribution 1 Controls
+    st.markdown("**📊 Distribution 1**")
+    mu1 = st.slider("μ₁ (Mean)", -5.0, 5.0, 0.0, 0.1, key="mu1")
+    sigma1 = st.slider("σ₁ (Std Dev)", 0.1, 3.0, 1.0, 0.1, key="sigma1")
+    show_dist1 = st.toggle("Show Distribution 1", value=True, key="show1")
+    color1 = st.selectbox("Color 1", ["blue", "red", "green", "purple"], key="color1")
     
-    col1, col2 = st.columns([1, 2])
+    st.markdown("---")
     
-    with col1:
-        st.subheader("Parameters")
-        
-        # Interactive controls
-        mu = st.slider("Mean (μ)", -5.0, 5.0, 0.0, 0.1, help="Controls the center of the distribution")
-        sigma = st.slider("Standard Deviation (σ)", 0.1, 3.0, 1.0, 0.1, help="Controls the spread of the distribution")
-        
-        # Comparison mode
-        show_comparison = st.checkbox("Compare with Standard Normal", help="Show both your curve and the standard normal")
-        
-        # Display current parameters
-        st.markdown(f"""
-        **Current Distribution:**
-        - Mean (μ) = {mu}
-        - Standard Deviation (σ) = {sigma}
-        - Variance (σ²) = {sigma**2:.2f}
-        """)
-        
-        # Calculate key statistics
-        x_range = np.linspace(mu - 4*sigma, mu + 4*sigma, 1000)
-        y_values = stats.norm.pdf(x_range, mu, sigma)
-        max_height = np.max(y_values)
-        
-        st.markdown(f"""
-        **Curve Properties:**
-        - Maximum height: {max_height:.3f}
-        - 68% of data between: [{mu-sigma:.1f}, {mu+sigma:.1f}]
-        - 95% of data between: [{mu-2*sigma:.1f}, {mu+2*sigma:.1f}]
-        - 99.7% of data between: [{mu-3*sigma:.1f}, {mu+3*sigma:.1f}]
-        """)
+    # Distribution 2 Controls
+    st.markdown("**📊 Distribution 2**")
+    mu2 = st.slider("μ₂ (Mean)", -5.0, 5.0, 1.0, 0.1, key="mu2")
+    sigma2 = st.slider("σ₂ (Std Dev)", 0.1, 3.0, 0.5, 0.1, key="sigma2")
+    show_dist2 = st.toggle("Show Distribution 2", value=False, key="show2")
+    color2 = st.selectbox("Color 2", ["red", "blue", "green", "orange"], key="color2")
     
-    with col2:
-        # Create the interactive plot
+    st.markdown("---")
+    
+    # Display Options
+    st.markdown("**🎨 Display Options**")
+    show_grid = st.toggle("Show Grid", value=True, key="grid")
+    show_std_lines = st.toggle("Show Standard Deviation Lines", value=True, key="std_lines")
+    show_area = st.toggle("Shade Area Under Curve", value=True, key="area")
+    show_labels = st.toggle("Show Value Labels", value=True, key="labels")
+    
+    # Area Calculation
+    st.markdown("---")
+    st.markdown("**📐 Area Calculator**")
+    calc_area = st.toggle("Calculate Area Between Values", key="calc_area")
+    
+    if calc_area:
+        which_dist = st.radio("Which distribution?", ["Distribution 1", "Distribution 2"], key="which_dist")
+        lower_bound = st.number_input("Lower bound:", value=-1.0, key="lower")
+        upper_bound = st.number_input("Upper bound:", value=1.0, key="upper")
+        
+        # Calculate area
+        if which_dist == "Distribution 1":
+            area = stats.norm.cdf(upper_bound, mu1, sigma1) - stats.norm.cdf(lower_bound, mu1, sigma1)
+            st.metric("Area (Probability)", f"{area:.4f}", f"{area*100:.2f}%")
+        else:
+            area = stats.norm.cdf(upper_bound, mu2, sigma2) - stats.norm.cdf(lower_bound, mu2, sigma2)
+            st.metric("Area (Probability)", f"{area:.4f}", f"{area*100:.2f}%")
+
+# Create the plots
+with plot_col1:
+    st.subheader("📈 Distribution 1 View")
+    if show_dist1:
         try:
-            fig, ax = plt.subplots(figsize=(12, 8))
+            fig1, ax1 = plt.subplots(figsize=(8, 6))
             
-            # Plot the current distribution
-            x = np.linspace(mu - 4*sigma, mu + 4*sigma, 1000)
-            y = stats.norm.pdf(x, mu, sigma)
+            # Plot distribution 1
+            x1 = np.linspace(mu1 - 4*sigma1, mu1 + 4*sigma1, 1000)
+            y1 = stats.norm.pdf(x1, mu1, sigma1)
             
-            ax.plot(x, y, 'b-', linewidth=3, label=f'Normal(μ={mu}, σ={sigma})')
-            ax.fill_between(x, y, alpha=0.3, color='blue')
+            ax1.plot(x1, y1, color=color1, linewidth=3, label=f'N(μ={mu1}, σ={sigma1})')
             
-            # Show comparison with standard normal if requested
-            if show_comparison:
-                x_std = np.linspace(-5, 5, 1000)
-                y_std = stats.norm.pdf(x_std, 0, 1)
-                ax.plot(x_std, y_std, 'r--', linewidth=2, label='Standard Normal (μ=0, σ=1)')
+            if show_area:
+                ax1.fill_between(x1, y1, alpha=0.3, color=color1)
             
             # Add mean line
-            ax.axvline(mu, color='red', linestyle='-', linewidth=2, label=f'Mean (μ={mu})')
+            ax1.axvline(mu1, color='black', linestyle='-', linewidth=2, alpha=0.7)
             
-            # Add standard deviation markers
-            for i in range(1, 4):
-                ax.axvline(mu + i*sigma, color='orange', linestyle=':', alpha=0.7)
-                ax.axvline(mu - i*sigma, color='orange', linestyle=':', alpha=0.7)
-                if mu + i*sigma <= ax.get_xlim()[1]:
-                    ax.text(mu + i*sigma, max_height*0.1, f'+{i}σ', ha='center', fontsize=9)
-                if mu - i*sigma >= ax.get_xlim()[0]:
-                    ax.text(mu - i*sigma, max_height*0.1, f'-{i}σ', ha='center', fontsize=9)
+            if show_labels:
+                max_y = np.max(y1)
+                ax1.text(mu1, max_y * 1.1, f'μ = {mu1}', ha='center', fontsize=12, weight='bold')
             
-            ax.set_xlabel('x')
-            ax.set_ylabel('Probability Density f(x)')
-            ax.set_title(f'Normal Distribution: μ={mu}, σ={sigma}')
-            ax.grid(True, alpha=0.3)
-            ax.legend()
+            # Add standard deviation lines
+            if show_std_lines:
+                for i in range(1, 4):
+                    ax1.axvline(mu1 + i*sigma1, color='orange', linestyle='--', alpha=0.6)
+                    ax1.axvline(mu1 - i*sigma1, color='orange', linestyle='--', alpha=0.6)
+                    if show_labels:
+                        ax1.text(mu1 + i*sigma1, max_y * 0.1, f'+{i}σ', ha='center', fontsize=10)
+                        ax1.text(mu1 - i*sigma1, max_y * 0.1, f'-{i}σ', ha='center', fontsize=10)
             
-            # Set reasonable axis limits
-            x_min = min(mu - 4*sigma, -5 if show_comparison else mu - 4*sigma)
-            x_max = max(mu + 4*sigma, 5 if show_comparison else mu + 4*sigma)
-            ax.set_xlim(x_min, x_max)
+            # Highlight area if calculating
+            if calc_area and which_dist == "Distribution 1":
+                x_area = x1[(x1 >= lower_bound) & (x1 <= upper_bound)]
+                y_area = stats.norm.pdf(x_area, mu1, sigma1)
+                ax1.fill_between(x_area, y_area, alpha=0.7, color='yellow', label=f'Area = {area:.4f}')
+                ax1.axvline(lower_bound, color='red', linestyle=':', linewidth=2)
+                ax1.axvline(upper_bound, color='red', linestyle=':', linewidth=2)
             
-            st.pyplot(fig)
-            plt.close(fig)  # Close figure to prevent memory issues
+            ax1.set_xlabel('x')
+            ax1.set_ylabel('Probability Density')
+            ax1.set_title(f'Normal Distribution: μ={mu1}, σ={sigma1}')
+            if show_grid:
+                ax1.grid(True, alpha=0.3)
+            ax1.legend()
+            
+            st.pyplot(fig1)
+            plt.close(fig1)
+            
+            # Show key statistics
+            st.markdown(f"""
+            **📊 Statistics for Distribution 1:**
+            - Mean (μ): {mu1}
+            - Standard Deviation (σ): {sigma1}
+            - Variance (σ²): {sigma1**2:.3f}
+            - Max Height: {np.max(y1):.3f}
+            - 68% Range: [{mu1-sigma1:.2f}, {mu1+sigma1:.2f}]
+            - 95% Range: [{mu1-2*sigma1:.2f}, {mu1+2*sigma1:.2f}]
+            """)
+            
         except Exception as e:
             st.error(f"Error creating plot: {e}")
-    
-    # Conjecture testing section
+    else:
+        st.info("👆 Turn on 'Show Distribution 1' to see the plot")
+
+with plot_col2:
+    st.subheader("📈 Distribution 2 View")
+    if show_dist2:
+        try:
+            fig2, ax2 = plt.subplots(figsize=(8, 6))
+            
+            # Plot distribution 2
+            x2 = np.linspace(mu2 - 4*sigma2, mu2 + 4*sigma2, 1000)
+            y2 = stats.norm.pdf(x2, mu2, sigma2)
+            
+            ax2.plot(x2, y2, color=color2, linewidth=3, label=f'N(μ={mu2}, σ={sigma2})')
+            
+            if show_area:
+                ax2.fill_between(x2, y2, alpha=0.3, color=color2)
+            
+            # Add mean line
+            ax2.axvline(mu2, color='black', linestyle='-', linewidth=2, alpha=0.7)
+            
+            if show_labels:
+                max_y = np.max(y2)
+                ax2.text(mu2, max_y * 1.1, f'μ = {mu2}', ha='center', fontsize=12, weight='bold')
+            
+            # Add standard deviation lines
+            if show_std_lines:
+                for i in range(1, 4):
+                    ax2.axvline(mu2 + i*sigma2, color='orange', linestyle='--', alpha=0.6)
+                    ax2.axvline(mu2 - i*sigma2, color='orange', linestyle='--', alpha=0.6)
+                    if show_labels:
+                        ax2.text(mu2 + i*sigma2, max_y * 0.1, f'+{i}σ', ha='center', fontsize=10)
+                        ax2.text(mu2 - i*sigma2, max_y * 0.1, f'-{i}σ', ha='center', fontsize=10)
+            
+            # Highlight area if calculating
+            if calc_area and which_dist == "Distribution 2":
+                x_area = x2[(x2 >= lower_bound) & (x2 <= upper_bound)]
+                y_area = stats.norm.pdf(x_area, mu2, sigma2)
+                ax2.fill_between(x_area, y_area, alpha=0.7, color='yellow', label=f'Area = {area:.4f}')
+                ax2.axvline(lower_bound, color='red', linestyle=':', linewidth=2)
+                ax2.axvline(upper_bound, color='red', linestyle=':', linewidth=2)
+            
+            ax2.set_xlabel('x')
+            ax2.set_ylabel('Probability Density')
+            ax2.set_title(f'Normal Distribution: μ={mu2}, σ={sigma2}')
+            if show_grid:
+                ax2.grid(True, alpha=0.3)
+            ax2.legend()
+            
+            st.pyplot(fig2)
+            plt.close(fig2)
+            
+            # Show key statistics
+            st.markdown(f"""
+            **📊 Statistics for Distribution 2:**
+            - Mean (μ): {mu2}
+            - Standard Deviation (σ): {sigma2}
+            - Variance (σ²): {sigma2**2:.3f}
+            - Max Height: {np.max(y2):.3f}
+            - 68% Range: [{mu2-sigma2:.2f}, {mu2+sigma2:.2f}]
+            - 95% Range: [{mu2-2*sigma2:.2f}, {mu2+2*sigma2:.2f}]
+            """)
+            
+        except Exception as e:
+            st.error(f"Error creating plot: {e}")
+    else:
+        st.info("👆 Turn on 'Show Distribution 2' to see the plot")
+
+# Comparison View
+if show_dist1 and show_dist2:
     st.markdown("---")
-    st.subheader("🧪 Test These Conjectures!")
+    st.header("⚖️ Side-by-Side Comparison")
     
-    with st.expander("Conjecture Testing Activity"):
-        st.markdown("""
-        Use the sliders above to test these conjectures. Which ones are TRUE and which are FALSE?
+    try:
+        fig_comp, ax_comp = plt.subplots(figsize=(12, 8))
         
-        **A.** As the mean increases, the normal curve shifts to the left.
-        **B.** The standard deviation determines the width of the normal distribution.
-        **C.** A normal curve with a very large mean and large standard deviation is tall and wide.
-        **D.** The area between a normal curve with a small standard deviation and the horizontal axis is much less than the area between a normal curve with a large standard deviation and the horizontal axis.
-        """)
+        # Plot both distributions
+        x1 = np.linspace(mu1 - 4*sigma1, mu1 + 4*sigma1, 1000)
+        y1 = stats.norm.pdf(x1, mu1, sigma1)
+        x2 = np.linspace(mu2 - 4*sigma2, mu2 + 4*sigma2, 1000)
+        y2 = stats.norm.pdf(x2, mu2, sigma2)
         
-        if st.button("Show Answers"):
-            st.markdown("""
-            **Answers:**
-            - **A. FALSE** - As the mean increases, the curve shifts to the RIGHT, not left.
-            - **B. TRUE** - Larger σ = wider curve, smaller σ = narrower curve.
-            - **C. FALSE** - Large standard deviation makes curves SHORTER and wider, not tall and wide.
-            - **D. FALSE** - The total area under ANY normal curve is always 1 (100%).
-            """)
+        ax_comp.plot(x1, y1, color=color1, linewidth=3, label=f'Dist 1: N(μ={mu1}, σ={sigma1})')
+        ax_comp.plot(x2, y2, color=color2, linewidth=3, label=f'Dist 2: N(μ={mu2}, σ={sigma2})')
+        
+        if show_area:
+            ax_comp.fill_between(x1, y1, alpha=0.2, color=color1)
+            ax_comp.fill_between(x2, y2, alpha=0.2, color=color2)
+        
+        # Add mean lines
+        ax_comp.axvline(mu1, color=color1, linestyle='-', linewidth=2, alpha=0.8)
+        ax_comp.axvline(mu2, color=color2, linestyle='-', linewidth=2, alpha=0.8)
+        
+        ax_comp.set_xlabel('x')
+        ax_comp.set_ylabel('Probability Density')
+        ax_comp.set_title('Comparison of Normal Distributions')
+        if show_grid:
+            ax_comp.grid(True, alpha=0.3)
+        ax_comp.legend()
+        
+        st.pyplot(fig_comp)
+        plt.close(fig_comp)
+        
+        # Comparison metrics
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Mean Difference", f"{abs(mu2 - mu1):.3f}")
+        with col2:
+            st.metric("Std Dev Difference", f"{abs(sigma2 - sigma1):.3f}")
+        with col3:
+            overlap_area = 0.5 * (stats.norm.cdf(min(mu1, mu2) + 2*max(sigma1, sigma2), mu1, sigma1) + 
+                                 stats.norm.cdf(min(mu1, mu2) + 2*max(sigma1, sigma2), mu2, sigma2))
+            st.metric("Approximate Overlap", f"{overlap_area:.3f}")
+            
+    except Exception as e:
+        st.error(f"Error creating comparison plot: {e}")
 
-elif section == "🛠️ Physical Manipulatives":
-    st.header("🛠️ Hands-On Activities & Physical Manipulatives")
-    
-    tab1, tab2, tab3, tab4 = st.tabs(["📏 Bean Machine", "📊 Data Collection", "🎯 Probability Games", "📐 Paper Models"])
-    
-    with tab1:
-        st.subheader("Galton Board (Bean Machine)")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **🔧 Build Your Own Galton Board:**
-            1. **Materials**: Pegboard, marbles/beans, funnel, collection bins
-            2. **Setup**: Arrange pegs in triangular pattern
-            3. **Process**: Drop marbles through the top
-            4. **Observe**: They collect in bins forming a bell curve
-            
-            **🎯 Learning Objectives:**
-            - Visualize random processes creating normal distributions
-            - Connect probability to physical phenomena
-            - Understand central limit theorem basics
-            """)
-        
-        with col2:
-            st.markdown("""
-            **📝 Investigation Questions:**
-            - What happens with 10 marbles vs 100 marbles?
-            - How does the number of peg rows affect the distribution?
-            - What if you change the peg spacing?
-            - Can you predict where most marbles will land?
-            
-            **🔍 Extensions:**
-            - Graph the results and compare to theoretical normal curve
-            - Calculate mean and standard deviation of your data
-            - Repeat experiment and compare results
-            """)
-    
-    with tab2:
-        st.subheader("Real Data Collection Activities")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **📊 Height Measurement Project:**
-            1. Measure heights of all students in class
-            2. Create histogram of the data
-            3. Calculate mean and standard deviation
-            4. Compare to theoretical normal curve
-            5. Discuss why heights follow normal distribution
-            
-            **🕐 Reaction Time Experiment:**
-            1. Use online reaction time tests
-            2. Each student takes 20 measurements
-            3. Pool all class data together
-            4. Analyze the distribution shape
-            """)
-        
-        with col2:
-            st.markdown("""
-            **🎲 Dice Sum Investigation:**
-            1. Roll two dice 100 times
-            2. Record the sum each time
-            3. Create frequency table and histogram
-            4. Compare to normal distribution
-            5. Try with 3 dice, then 4 dice
-            
-            **📏 Paper Airplane Distance:**
-            1. Each student makes identical paper airplane
-            2. Fly 10 times, measure distances
-            3. Combine all flight data
-            4. Analyze the resulting distribution
-            """)
-    
-    with tab3:
-        st.subheader("Probability Games & Simulations")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **🎰 Coin Flip Proportions:**
-            1. Flip 10 coins, count heads
-            2. Repeat 50 times
-            3. Graph proportion of heads
-            4. Observe normal distribution emergence
-            
-            **🎯 Basketball Free Throws:**
-            1. Students attempt 20 free throws
-            2. Record number of successful shots
-            3. Compile class data
-            4. Analyze distribution of success rates
-            """)
-        
-        with col2:
-            st.markdown("""
-            **🌡️ Temperature Tracking:**
-            1. Record daily high temperatures for 30 days
-            2. Calculate daily average temperature
-            3. Look at distribution of temperatures
-            4. Compare different seasons
-            
-            **⏱️ Traffic Light Timing:**
-            1. Time how long students wait at traffic lights
-            2. Collect data over several days
-            3. Analyze wait time distribution
-            4. Discuss real-world applications
-            """)
-    
-    with tab4:
-        st.subheader("Paper and Cardboard Models")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **📊 3D Bell Curve Model:**
-            1. **Materials**: Cardboard, graph paper, scissors
-            2. **Process**: 
-               - Plot normal curve on graph paper
-               - Cut out multiple identical curves
-               - Stack to create 3D model
-            3. **Learning**: Visualize area under curve concepts
-            
-            **📏 Sliding Scale Model:**
-            1. Create paper strips with different normal curves
-            2. Use sliders to change μ and σ parameters
-            3. Observe how curves shift and stretch
-            """)
-        
-        with col2:
-            st.markdown("""
-            **🎨 Area Visualization:**
-            1. Draw normal curve on large paper
-            2. Color regions for 68-95-99.7 rule
-            3. Cut out pieces to compare areas
-            4. Stack pieces to show probability
-            
-            **📐 Standard Deviation Ruler:**
-            1. Create ruler marked in standard deviations
-            2. Use with different normal curves
-            3. Measure areas between standard deviations
-            4. Verify the empirical rule
-            """)
-
-elif section == "🌍 Real-World Applications":
-    st.header("🌍 Real-World Applications of Normal Distribution")
-    
-    tab1, tab2, tab3, tab4 = st.tabs(["🏥 Medicine & Health", "📈 Business & Economics", "🔬 Science & Research", "🎓 Education & Testing"])
-    
-    with tab1:
-        st.subheader("Medicine & Health Applications")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **🩺 Medical Measurements:**
-            - **Blood pressure**: Systolic and diastolic readings
-            - **Cholesterol levels**: Risk assessment and treatment
-            - **BMI distribution**: Population health studies
-            - **Drug effectiveness**: Clinical trial analysis
-            
-            **🧬 Biological Measurements:**
-            - **Birth weights**: Identifying at-risk infants
-            - **Height and weight**: Growth charts and percentiles
-            - **Reaction times**: Neurological assessments
-            - **Heart rate variability**: Cardiovascular health
-            """)
-        
-        with col2:
-            st.markdown("""
-            **🧪 Laboratory Testing:**
-            - **Reference ranges**: Establishing normal vs abnormal values
-            - **Quality control**: Ensuring test accuracy
-            - **Diagnostic thresholds**: Setting cutoff points
-            - **Population screening**: Identifying health trends
-            
-            **📊 Epidemiology:**
-            - **Disease incidence**: Tracking outbreak patterns
-            - **Treatment outcomes**: Measuring intervention success
-            - **Risk factors**: Identifying population vulnerabilities
-            - **Vaccine efficacy**: Clinical trial analysis
-            """)
-    
-    with tab2:
-        st.subheader("Business & Economics Applications")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **💰 Financial Markets:**
-            - **Stock returns**: Risk assessment and portfolio management
-            - **Currency fluctuations**: Exchange rate modeling
-            - **Credit scores**: Loan approval and risk pricing
-            - **Insurance claims**: Premium calculation and reserves
-            
-            **📊 Quality Control:**
-            - **Manufacturing tolerances**: Product specification limits
-            - **Service times**: Customer satisfaction metrics
-            - **Error rates**: Process improvement initiatives
-            - **Employee performance**: Evaluation and benchmarking
-            """)
-        
-        with col2:
-            st.markdown("""
-            **🛒 Market Research:**
-            - **Consumer spending**: Purchasing behavior analysis
-            - **Survey responses**: Opinion polling and market studies
-            - **Product ratings**: Customer satisfaction measurement
-            - **Sales forecasting**: Demand prediction models
-            
-            **📈 Operations Research:**
-            - **Wait times**: Queue management and staffing
-            - **Inventory levels**: Supply chain optimization
-            - **Demand variability**: Production planning
-            - **Resource allocation**: Efficiency maximization
-            """)
-    
-    with tab3:
-        st.subheader("Science & Research Applications")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **🔬 Experimental Science:**
-            - **Measurement errors**: Instrument calibration and precision
-            - **Hypothesis testing**: Statistical significance determination
-            - **Sample means**: Central limit theorem applications
-            - **Data analysis**: Identifying outliers and patterns
-            
-            **🌡️ Environmental Science:**
-            - **Temperature variations**: Climate change analysis
-            - **Pollution levels**: Environmental monitoring
-            - **Species populations**: Ecological modeling
-            - **Weather patterns**: Meteorological predictions
-            """)
-        
-        with col2:
-            st.markdown("""
-            **🧬 Research Methods:**
-            - **Sample size calculation**: Study design and power analysis
-            - **Confidence intervals**: Parameter estimation
-            - **Regression analysis**: Relationship modeling
-            - **Meta-analysis**: Combining multiple studies
-            
-            **🔭 Physical Sciences:**
-            - **Quantum mechanics**: Probability distributions
-            - **Thermal physics**: Molecular motion and energy
-            - **Astronomy**: Star brightness and distance measurements
-            - **Engineering**: Signal processing and noise analysis
-            """)
-    
-    with tab4:
-        st.subheader("Education & Testing Applications")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **📝 Standardized Testing:**
-            - **SAT/ACT scores**: College admissions and comparisons
-            - **IQ testing**: Intelligence measurement and interpretation
-            - **Achievement tests**: Academic performance assessment
-            - **Professional exams**: Certification and licensing
-            
-            **📊 Educational Assessment:**
-            - **Grade distributions**: Course difficulty and fairness
-            - **Test item analysis**: Question validity and reliability
-            - **Student performance**: Progress monitoring and intervention
-            - **School comparisons**: Accountability and improvement
-            """)
-        
-        with col2:
-            st.markdown("""
-            **🎯 Psychometrics:**
-            - **Personality testing**: Psychological assessment tools
-            - **Aptitude tests**: Career guidance and selection
-            - **Survey research**: Social science data collection
-            - **Program evaluation**: Effectiveness measurement
-            
-            **📈 Data-Driven Decisions:**
-            - **Admissions criteria**: Selection and placement
-            - **Resource allocation**: Budget and staffing decisions
-            - **Curriculum development**: Content and pacing guides
-            - **Teacher evaluation**: Performance measurement systems
-            """)
-
-elif section == "📝 Problem Solving":
-    st.header("📝 Real-World Problem Solving")
-    
-    problem_type = st.selectbox("Choose a problem category:", [
-        "🏥 Medical Diagnosis", 
-        "📊 Quality Control", 
-        "📈 Financial Analysis", 
-        "🎓 Educational Assessment"
-    ])
-    
-    if problem_type == "🏥 Medical Diagnosis":
-        st.subheader("Medical Reference Ranges")
-        
-        st.markdown("""
-        **Problem:** A medical laboratory establishes reference ranges for cholesterol levels. In a healthy population,
-        total cholesterol follows a normal distribution with mean 190 mg/dL and standard deviation 35 mg/dL.
-        """)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **Given Information:**
-            - Population: Healthy adults
-            - Mean cholesterol: 190 mg/dL
-            - Standard deviation: 35 mg/dL
-            - Distribution: Normal
-            """)
-            
-            # Interactive parameters
-            mu_chol = st.slider("Mean cholesterol (mg/dL)", 150, 250, 190)
-            sigma_chol = st.slider("Standard deviation (mg/dL)", 20, 50, 35)
-            
-            # Calculate key values
-            low_normal = mu_chol - 2*sigma_chol
-            high_normal = mu_chol + 2*sigma_chol
-            
-            st.markdown(f"""
-            **Calculated Reference Ranges:**
-            - Normal range (±2σ): {low_normal:.0f} - {high_normal:.0f} mg/dL
-            - Borderline high (>1σ): >{mu_chol + sigma_chol:.0f} mg/dL
-            - High risk (>2σ): >{high_normal:.0f} mg/dL
-            
-            **Clinical Interpretation:**
-            - 95% of healthy people: {low_normal:.0f} - {high_normal:.0f} mg/dL
-            - 2.5% have levels > {high_normal:.0f} mg/dL
-            - 2.5% have levels < {low_normal:.0f} mg/dL
-            """)
-        
-        with col2:
-            # Plot cholesterol distribution
-            try:
-                x = np.linspace(mu_chol - 4*sigma_chol, mu_chol + 4*sigma_chol, 1000)
-                y = stats.norm.pdf(x, mu_chol, sigma_chol)
-                
-                fig, ax = plt.subplots(figsize=(10, 6))
-                
-                # Color different regions
-                ax.fill_between(x, y, alpha=0.3, color='green', label='Normal range')
-                
-                # Highlight risk zones
-                x_high = x[x > high_normal]
-                y_high = stats.norm.pdf(x_high, mu_chol, sigma_chol)
-                ax.fill_between(x_high, y_high, alpha=0.6, color='red', label='High risk')
-                
-                x_low = x[x < low_normal]
-                y_low = stats.norm.pdf(x_low, mu_chol, sigma_chol)
-                ax.fill_between(x_low, y_low, alpha=0.6, color='orange', label='Low (unusual)')
-                
-                ax.plot(x, y, 'b-', linewidth=2)
-                ax.axvline(mu_chol, color='black', linestyle='-', linewidth=2, label=f'Mean ({mu_chol})')
-                ax.axvline(high_normal, color='red', linestyle='--', label=f'High threshold ({high_normal:.0f})')
-                ax.axvline(low_normal, color='orange', linestyle='--', label=f'Low threshold ({low_normal:.0f})')
-                
-                ax.set_xlabel('Cholesterol Level (mg/dL)')
-                ax.set_ylabel('Probability Density')
-                ax.set_title('Cholesterol Distribution and Reference Ranges')
-                ax.legend()
-                ax.grid(True, alpha=0.3)
-                
-                st.pyplot(fig)
-                plt.close(fig)
-            except Exception as e:
-                st.error(f"Error creating plot: {e}")
-
-elif section == "🧪 Hypothesis Testing":
-    st.header("🧪 Hypothesis Testing with Normal Distribution")
-    
-    st.markdown("""
-    **Learn how the normal distribution is used in statistical hypothesis testing!**
-    This section demonstrates how researchers use normal distributions to make decisions about populations.
-    """)
-    
-    test_type = st.selectbox("Choose a hypothesis test:", [
-        "One-sample z-test",
-        "Two-sample comparison", 
-        "Quality control testing",
-        "Clinical trial analysis"
-    ])
-    
-    if test_type == "One-sample z-test":
-        st.subheader("One-Sample Z-Test")
-        
-        st.markdown("""
-        **Scenario:** A manufacturer claims their light bulbs last 1000 hours on average. 
-        We test a sample of bulbs to verify this claim.
-        """)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            # Test parameters
-            claimed_mean = st.slider("Claimed mean (hours)", 800, 1200, 1000)
-            population_std = st.slider("Known std dev (hours)", 50, 200, 100)
-            sample_size = st.slider("Sample size", 10, 100, 36)
-            sample_mean = st.slider("Sample mean (hours)", 800, 1200, 950)
-            alpha = st.selectbox("Significance level (α)", [0.01, 0.05, 0.10], index=1)
-            
-            # Calculate test statistic and p-value
-            standard_error = population_std / math.sqrt(sample_size)
-            z_score = (sample_mean - claimed_mean) / standard_error
-            p_value = 2 * (1 - stats.norm.cdf(abs(z_score)))  # Two-tailed test
-            
-            # Critical values
-            z_critical = stats.norm.ppf(1 - alpha/2)
-            
-            # Decision
-            reject_null = abs(z_score) > z_critical
-            
-            st.markdown(f"""
-            **Hypothesis Test:**
-            - H₀: μ = {claimed_mean} hours
-            - H₁: μ ≠ {claimed_mean} hours
-            - α = {alpha}
-            
-            **Test Results:**
-            - Sample mean: {sample_mean} hours
-            - Standard error: {standard_error:.2f}
-            - Z-score: {z_score:.3f}
-            - P-value: {p_value:.4f}
-            - Critical value: ±{z_critical:.3f}
-            
-            **Decision:**
-            - {'Reject' if reject_null else 'Fail to reject'} the null hypothesis
-            - Evidence: {'Significant' if reject_null else 'Not significant'} at α = {alpha}
-            - Conclusion: {'The claim is likely false' if reject_null else 'Insufficient evidence against the claim'}
-            """)
-        
-        with col2:
-            # Plot hypothesis test
-            try:
-                x = np.linspace(-4, 4, 1000)
-                y = stats.norm.pdf(x, 0, 1)
-                
-                fig, ax = plt.subplots(figsize=(10, 6))
-                
-                # Plot standard normal
-                ax.plot(x, y, 'b-', linewidth=2, label='Standard Normal (H₀ true)')
-                
-                # Shade critical regions
-                x_left = x[x < -z_critical]
-                y_left = stats.norm.pdf(x_left, 0, 1)
-                ax.fill_between(x_left, y_left, alpha=0.3, color='red', label=f'Critical region (α/2 = {alpha/2})')
-                
-                x_right = x[x > z_critical]
-                y_right = stats.norm.pdf(x_right, 0, 1)
-                ax.fill_between(x_right, y_right, alpha=0.3, color='red')
-                
-                # Mark test statistic
-                ax.axvline(z_score, color='green', linestyle='--', linewidth=3, label=f'Test statistic (z = {z_score:.3f})')
-                ax.axvline(-z_critical, color='red', linestyle=':', label=f'Critical values (±{z_critical:.3f})')
-                ax.axvline(z_critical, color='red', linestyle=':')
-                
-                ax.set_xlabel('Z-score')
-                ax.set_ylabel('Probability Density')
-                ax.set_title('Hypothesis Test Visualization')
-                ax.legend()
-                ax.grid(True, alpha=0.3)
-                
-                st.pyplot(fig)
-                plt.close(fig)
-            except Exception as e:
-                st.error(f"Error creating plot: {e}")
-
-# Educational Standards and Resources Section
+# Interactive Conjecture Testing
 st.markdown("---")
-st.header("📋 Educational Standards & Cognitive Development")
+st.header("🧪 Test Your Conjectures!")
 
-# Common Core Standards breakdown
-with st.expander("📚 Common Core Standards Alignment"):
+st.markdown("**Use the controls above to test these statements. Mark each as TRUE or FALSE:**")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown("**A.** As the mean increases, the normal curve shifts to the left.")
+    answer_a = st.radio("Your answer:", ["True", "False"], key="answer_a")
+    
+    st.markdown("**B.** The standard deviation determines the width of the normal distribution.")
+    answer_b = st.radio("Your answer:", ["True", "False"], key="answer_b")
+
+with col2:
+    st.markdown("**C.** A normal curve with a very large mean and large standard deviation is tall and wide.")
+    answer_c = st.radio("Your answer:", ["True", "False"], key="answer_c")
+    
+    st.markdown("**D.** The area under any normal curve is always 1.")
+    answer_d = st.radio("Your answer:", ["True", "False"], key="answer_d")
+
+if st.button("🎯 Check My Answers!"):
+    results = []
+    
+    if answer_a == "False":
+        results.append("✅ A. CORRECT! The curve shifts RIGHT as mean increases.")
+    else:
+        results.append("❌ A. INCORRECT. Try increasing μ₁ and watch the curve move right!")
+    
+    if answer_b == "True":
+        results.append("✅ B. CORRECT! Larger σ = wider curve.")
+    else:
+        results.append("❌ B. INCORRECT. Try changing σ₁ and observe the width!")
+    
+    if answer_c == "False":
+        results.append("✅ C. CORRECT! Large σ makes curves SHORTER and wider.")
+    else:
+        results.append("❌ C. INCORRECT. Try σ₁ = 3.0 and see the height decrease!")
+    
+    if answer_d == "True":
+        results.append("✅ D. CORRECT! All normal curves have area = 1.")
+    else:
+        results.append("❌ D. INCORRECT. This is always true for any normal distribution!")
+    
+    for result in results:
+        st.write(result)
+
+# Quick Tools Section
+st.markdown("---")
+st.header("🛠️ Quick Tools")
+
+tool_tabs = st.tabs(["📊 Z-Score Calculator", "📈 Percentile Finder", "🎯 Probability Calculator", "📋 68-95-99.7 Rule"])
+
+with tool_tabs[0]:
+    st.subheader("Calculate Z-Score")
+    z_value = st.number_input("Enter value (x):", value=1.5, key="z_val")
+    z_mu = st.number_input("Mean (μ):", value=0.0, key="z_mu")
+    z_sigma = st.number_input("Std Dev (σ):", value=1.0, min_value=0.1, key="z_sigma")
+    
+    z_score = (z_value - z_mu) / z_sigma
+    st.metric("Z-Score", f"{z_score:.4f}")
+    st.write(f"This value is {abs(z_score):.2f} standard deviations {'above' if z_score > 0 else 'below'} the mean.")
+
+with tool_tabs[1]:
+    st.subheader("Find Percentile")
+    p_value = st.number_input("Enter value:", value=1.0, key="p_val")
+    p_mu = st.number_input("Mean:", value=0.0, key="p_mu")
+    p_sigma = st.number_input("Std Dev:", value=1.0, min_value=0.1, key="p_sigma")
+    
+    percentile = stats.norm.cdf(p_value, p_mu, p_sigma) * 100
+    st.metric("Percentile", f"{percentile:.2f}%")
+    st.write(f"{percentile:.1f}% of values are below {p_value}")
+
+with tool_tabs[2]:
+    st.subheader("Calculate Probability")
+    prob_mu = st.number_input("Mean:", value=0.0, key="prob_mu")
+    prob_sigma = st.number_input("Std Dev:", value=1.0, min_value=0.1, key="prob_sigma")
+    prob_lower = st.number_input("Lower bound:", value=-1.0, key="prob_lower")
+    prob_upper = st.number_input("Upper bound:", value=1.0, key="prob_upper")
+    
+    probability = stats.norm.cdf(prob_upper, prob_mu, prob_sigma) - stats.norm.cdf(prob_lower, prob_mu, prob_sigma)
+    st.metric("Probability", f"{probability:.4f}")
+    st.metric("Percentage", f"{probability*100:.2f}%")
+
+with tool_tabs[3]:
+    st.subheader("68-95-99.7 Rule Visualizer")
+    rule_mu = st.number_input("Mean:", value=0.0, key="rule_mu")
+    rule_sigma = st.number_input("Std Dev:", value=1.0, min_value=0.1, key="rule_sigma")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("68% Range", f"[{rule_mu-rule_sigma:.2f}, {rule_mu+rule_sigma:.2f}]")
+    with col2:
+        st.metric("95% Range", f"[{rule_mu-2*rule_sigma:.2f}, {rule_mu+2*rule_sigma:.2f}]")
+    with col3:
+        st.metric("99.7% Range", f"[{rule_mu-3*rule_sigma:.2f}, {rule_mu+3*rule_sigma:.2f}]")
+
+# Educational Links and Resources
+st.markdown("---")
+st.header("📚 Learn More")
+
+resource_cols = st.columns(4)
+
+with resource_cols[0]:
     st.markdown("""
-    ### High School Statistics & Probability Standards:
-    
-    **S-ID (Interpreting Categorical and Quantitative Data):**
-    - S-ID.A.4: Use the mean and standard deviation of a data set to fit it to a normal distribution
-    - S-ID.B.6: Represent data on two quantitative variables and describe the relationship
-    
-    **S-IC (Making Inferences and Justifying Conclusions):**
-    - S-IC.A.1: Understand statistics as a process for making inferences about population parameters
-    - S-IC.A.2: Decide if a specified model is consistent with results from a given data-generating process
-    - S-IC.B.4: Use data from a sample survey to estimate a population mean or proportion
-    - S-IC.B.5: Use data from a randomized experiment to compare two treatments
-    
-    **A-CED (Creating Equations):**
-    - A-CED.A.3: Represent constraints by systems of equations and interpret solutions
-    
-    **F-IF (Interpreting Functions):**
-    - F-IF.C.7: Graph functions expressed symbolically and show key features
-    - F-IF.B.4: Interpret key features of graphs and tables in context
-    
-    **Mathematical Practices:**
-    - MP1: Make sense of problems and persevere in solving them
-    - MP2: Reason abstractly and quantitatively  
-    - MP3: Construct viable arguments and critique reasoning of others
-    - MP4: Model with mathematics
-    - MP5: Use appropriate tools strategically
-    - MP6: Attend to precision
-    - MP7: Look for and make use of structure
-    - MP8: Look for and express regularity in repeated reasoning
+    **📖 Khan Academy**
+    - [Normal Distribution Intro](https://www.khanacademy.org/math/statistics-probability/modeling-distributions-of-data/normal-distributions-library)
+    - [68-95-99.7 Rule](https://www.khanacademy.org/math/statistics-probability/modeling-distributions-of-data/normal-distributions-library/v/ck12-the-empirical-rule)
     """)
+
+with resource_cols[1]:
+    st.markdown("""
+    **🎮 Interactive Tools**
+    - [Desmos Normal Distribution](https://www.desmos.com/calculator)
+    - [GeoGebra Statistics](https://www.geogebra.org/statistics)
+    """)
+
+with resource_cols[2]:
+    st.markdown("""
+    **📊 Real Data**
+    - [StatCrunch Datasets](https://www.statcrunch.com/)
+    - [FiveThirtyEight Data](https://fivethirtyeight.com/data/)
+    """)
+
+with resource_cols[3]:
+    st.markdown("""
+    **🔬 Simulations**
+    - [PhET Probability](https://phet.colorado.edu/en/simulations/category/math)
+    - [Wolfram Demonstrations](https://demonstrations.wolfram.com/)
+    """)
+
+st.markdown("---")
+st.markdown("*🎯 MathCraft: Making mathematics interactive, engaging, and meaningful through hands-on exploration!*")
