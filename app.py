@@ -2,16 +2,22 @@ import streamlit as st
 import numpy as np
 import math
 
-# Configure matplotlib for Streamlit
+# Configure matplotlib for Streamlit - moved before other matplotlib imports
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
-plt.style.use('default')  # Ensure consistent styling
 
+# Import other libraries
 from scipy import stats
 import pandas as pd
 
+# Set page config first
 st.set_page_config(page_title="MathCraft | Normal Distribution", layout="wide")
+
+# Clear any existing matplotlib configurations and set a clean style
+plt.style.use('default')
+plt.rcParams.update({'figure.max_open_warning': 0})
+
 st.title("📊 MathCraft: Exploring the Normal Distribution")
 
 # Sidebar for navigation
@@ -46,32 +52,36 @@ if section == "📚 Introduction":
     | Mean (μ) | Center of the distribution | E[X] = μ |
     | Standard Deviation (σ) | Measure of spread | σ > 0 |
     | Variance (σ²) | Square of standard deviation | Var[X] = σ² |
-    | Probability Density Function | Formula for the curve | $f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{1}{2}(\\frac{x-\\mu}{\\sigma})^2}$ |
+    | Probability Density Function | Formula for the curve | f(x) = (1/(σ√(2π))) × e^(-½((x-μ)/σ)²) |
     | Standard Normal | Special case with μ=0, σ=1 | Z ~ N(0,1) |
     """)
     
     # Create a basic normal distribution plot
-    fig, ax = plt.subplots(figsize=(10, 6))
-    x = np.linspace(-4, 4, 1000)
-    y = stats.norm.pdf(x, 0, 1)
-    
-    ax.plot(x, y, 'b-', linewidth=3, label='Standard Normal (μ=0, σ=1)')
-    ax.fill_between(x, y, alpha=0.3)
-    
-    # Add vertical lines for standard deviations
-    for i in range(-3, 4):
-        ax.axvline(i, color='red', linestyle='--', alpha=0.5)
-        if i != 0:
-            ax.text(i, 0.05, f'{i}σ', ha='center', fontsize=10)
-    
-    ax.axvline(0, color='red', linestyle='-', linewidth=2, label='Mean (μ)')
-    ax.set_xlabel('Standard Deviations from Mean')
-    ax.set_ylabel('Probability Density')
-    ax.set_title('The Standard Normal Distribution')
-    ax.grid(True, alpha=0.3)
-    ax.legend()
-    
-    st.pyplot(fig)
+    try:
+        fig, ax = plt.subplots(figsize=(10, 6))
+        x = np.linspace(-4, 4, 1000)
+        y = stats.norm.pdf(x, 0, 1)
+        
+        ax.plot(x, y, 'b-', linewidth=3, label='Standard Normal (μ=0, σ=1)')
+        ax.fill_between(x, y, alpha=0.3)
+        
+        # Add vertical lines for standard deviations
+        for i in range(-3, 4):
+            ax.axvline(i, color='red', linestyle='--', alpha=0.5)
+            if i != 0:
+                ax.text(i, 0.05, f'{i}σ', ha='center', fontsize=10)
+        
+        ax.axvline(0, color='red', linestyle='-', linewidth=2, label='Mean (μ)')
+        ax.set_xlabel('Standard Deviations from Mean')
+        ax.set_ylabel('Probability Density')
+        ax.set_title('The Standard Normal Distribution')
+        ax.grid(True, alpha=0.3)
+        ax.legend()
+        
+        st.pyplot(fig)
+        plt.close(fig)  # Close figure to prevent memory issues
+    except Exception as e:
+        st.error(f"Error creating plot: {e}")
 
 elif section == "🔍 Interactive Explorer":
     st.header("🔍 Interactive Normal Distribution Explorer")
@@ -116,45 +126,49 @@ elif section == "🔍 Interactive Explorer":
     
     with col2:
         # Create the interactive plot
-        fig, ax = plt.subplots(figsize=(12, 8))
-        
-        # Plot the current distribution
-        x = np.linspace(mu - 4*sigma, mu + 4*sigma, 1000)
-        y = stats.norm.pdf(x, mu, sigma)
-        
-        ax.plot(x, y, 'b-', linewidth=3, label=f'Normal(μ={mu}, σ={sigma})')
-        ax.fill_between(x, y, alpha=0.3, color='blue')
-        
-        # Show comparison with standard normal if requested
-        if show_comparison:
-            x_std = np.linspace(-5, 5, 1000)
-            y_std = stats.norm.pdf(x_std, 0, 1)
-            ax.plot(x_std, y_std, 'r--', linewidth=2, label='Standard Normal (μ=0, σ=1)')
-        
-        # Add mean line
-        ax.axvline(mu, color='red', linestyle='-', linewidth=2, label=f'Mean (μ={mu})')
-        
-        # Add standard deviation markers
-        for i in range(1, 4):
-            ax.axvline(mu + i*sigma, color='orange', linestyle=':', alpha=0.7)
-            ax.axvline(mu - i*sigma, color='orange', linestyle=':', alpha=0.7)
-            if mu + i*sigma <= ax.get_xlim()[1]:
-                ax.text(mu + i*sigma, max_height*0.1, f'+{i}σ', ha='center', fontsize=9)
-            if mu - i*sigma >= ax.get_xlim()[0]:
-                ax.text(mu - i*sigma, max_height*0.1, f'-{i}σ', ha='center', fontsize=9)
-        
-        ax.set_xlabel('x')
-        ax.set_ylabel('Probability Density f(x)')
-        ax.set_title(f'Normal Distribution: μ={mu}, σ={sigma}')
-        ax.grid(True, alpha=0.3)
-        ax.legend()
-        
-        # Set reasonable axis limits
-        x_min = min(mu - 4*sigma, -5 if show_comparison else mu - 4*sigma)
-        x_max = max(mu + 4*sigma, 5 if show_comparison else mu + 4*sigma)
-        ax.set_xlim(x_min, x_max)
-        
-        st.pyplot(fig)
+        try:
+            fig, ax = plt.subplots(figsize=(12, 8))
+            
+            # Plot the current distribution
+            x = np.linspace(mu - 4*sigma, mu + 4*sigma, 1000)
+            y = stats.norm.pdf(x, mu, sigma)
+            
+            ax.plot(x, y, 'b-', linewidth=3, label=f'Normal(μ={mu}, σ={sigma})')
+            ax.fill_between(x, y, alpha=0.3, color='blue')
+            
+            # Show comparison with standard normal if requested
+            if show_comparison:
+                x_std = np.linspace(-5, 5, 1000)
+                y_std = stats.norm.pdf(x_std, 0, 1)
+                ax.plot(x_std, y_std, 'r--', linewidth=2, label='Standard Normal (μ=0, σ=1)')
+            
+            # Add mean line
+            ax.axvline(mu, color='red', linestyle='-', linewidth=2, label=f'Mean (μ={mu})')
+            
+            # Add standard deviation markers
+            for i in range(1, 4):
+                ax.axvline(mu + i*sigma, color='orange', linestyle=':', alpha=0.7)
+                ax.axvline(mu - i*sigma, color='orange', linestyle=':', alpha=0.7)
+                if mu + i*sigma <= ax.get_xlim()[1]:
+                    ax.text(mu + i*sigma, max_height*0.1, f'+{i}σ', ha='center', fontsize=9)
+                if mu - i*sigma >= ax.get_xlim()[0]:
+                    ax.text(mu - i*sigma, max_height*0.1, f'-{i}σ', ha='center', fontsize=9)
+            
+            ax.set_xlabel('x')
+            ax.set_ylabel('Probability Density f(x)')
+            ax.set_title(f'Normal Distribution: μ={mu}, σ={sigma}')
+            ax.grid(True, alpha=0.3)
+            ax.legend()
+            
+            # Set reasonable axis limits
+            x_min = min(mu - 4*sigma, -5 if show_comparison else mu - 4*sigma)
+            x_max = max(mu + 4*sigma, 5 if show_comparison else mu + 4*sigma)
+            ax.set_xlim(x_min, x_max)
+            
+            st.pyplot(fig)
+            plt.close(fig)  # Close figure to prevent memory issues
+        except Exception as e:
+            st.error(f"Error creating plot: {e}")
     
     # Conjecture testing section
     st.markdown("---")
@@ -512,247 +526,39 @@ elif section == "📝 Problem Solving":
         
         with col2:
             # Plot cholesterol distribution
-            x = np.linspace(mu_chol - 4*sigma_chol, mu_chol + 4*sigma_chol, 1000)
-            y = stats.norm.pdf(x, mu_chol, sigma_chol)
-            
-            fig, ax = plt.subplots(figsize=(10, 6))
-            
-            # Color different regions
-            ax.fill_between(x, y, alpha=0.3, color='green', label='Normal range')
-            
-            # Highlight risk zones
-            x_high = x[x > high_normal]
-            y_high = stats.norm.pdf(x_high, mu_chol, sigma_chol)
-            ax.fill_between(x_high, y_high, alpha=0.6, color='red', label='High risk')
-            
-            x_low = x[x < low_normal]
-            y_low = stats.norm.pdf(x_low, mu_chol, sigma_chol)
-            ax.fill_between(x_low, y_low, alpha=0.6, color='orange', label='Low (unusual)')
-            
-            ax.plot(x, y, 'b-', linewidth=2)
-            ax.axvline(mu_chol, color='black', linestyle='-', linewidth=2, label=f'Mean ({mu_chol})')
-            ax.axvline(high_normal, color='red', linestyle='--', label=f'High threshold ({high_normal:.0f})')
-            ax.axvline(low_normal, color='orange', linestyle='--', label=f'Low threshold ({low_normal:.0f})')
-            
-            ax.set_xlabel('Cholesterol Level (mg/dL)')
-            ax.set_ylabel('Probability Density')
-            ax.set_title('Cholesterol Distribution and Reference Ranges')
-            ax.legend()
-            ax.grid(True, alpha=0.3)
-            
-            st.pyplot(fig)
-    
-    elif problem_type == "📊 Quality Control":
-        st.subheader("Manufacturing Quality Control")
-        
-        st.markdown("""
-        **Problem:** A factory produces bolts with a target diameter of 10.00 mm. The manufacturing process
-        has natural variation with standard deviation 0.15 mm. Bolts outside ±0.30 mm are rejected.
-        """)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            target_diameter = st.slider("Target diameter (mm)", 9.5, 10.5, 10.0, 0.01)
-            process_std = st.slider("Process std dev (mm)", 0.05, 0.25, 0.15, 0.01)
-            tolerance = st.slider("Tolerance (±mm)", 0.1, 0.5, 0.3, 0.01)
-            
-            # Calculate quality metrics
-            lower_spec = target_diameter - tolerance
-            upper_spec = target_diameter + tolerance
-            
-            # Calculate probabilities
-            p_reject_low = stats.norm.cdf(lower_spec, target_diameter, process_std)
-            p_reject_high = 1 - stats.norm.cdf(upper_spec, target_diameter, process_std)
-            p_reject_total = p_reject_low + p_reject_high
-            p_accept = 1 - p_reject_total
-            
-            st.markdown(f"""
-            **Quality Specifications:**
-            - Target: {target_diameter:.2f} mm
-            - Tolerance: ±{tolerance:.2f} mm
-            - Acceptable range: {lower_spec:.2f} - {upper_spec:.2f} mm
-            
-            **Process Performance:**
-            - Acceptance rate: {p_accept*100:.1f}%
-            - Rejection rate: {p_reject_total*100:.1f}%
-            - Daily production (10,000 bolts): {int(p_accept*10000)} good, {int(p_reject_total*10000)} rejected
-            
-            **Cost Analysis:**
-            - Material waste: {p_reject_total*100:.1f}%
-            - Process capability: {'Good' if p_reject_total < 0.05 else 'Needs improvement'}
-            """)
-        
-        with col2:
-            # Plot quality control chart
-            x = np.linspace(target_diameter - 4*process_std, target_diameter + 4*process_std, 1000)
-            y = stats.norm.pdf(x, target_diameter, process_std)
-            
-            fig, ax = plt.subplots(figsize=(10, 6))
-            
-            # Color regions
-            x_good = x[(x >= lower_spec) & (x <= upper_spec)]
-            y_good = stats.norm.pdf(x_good, target_diameter, process_std)
-            ax.fill_between(x_good, y_good, alpha=0.4, color='green', label=f'Acceptable ({p_accept*100:.1f}%)')
-            
-            x_reject_low = x[x < lower_spec]
-            y_reject_low = stats.norm.pdf(x_reject_low, target_diameter, process_std)
-            ax.fill_between(x_reject_low, y_reject_low, alpha=0.6, color='red', label=f'Too small ({p_reject_low*100:.1f}%)')
-            
-            x_reject_high = x[x > upper_spec]
-            y_reject_high = stats.norm.pdf(x_reject_high, target_diameter, process_std)
-            ax.fill_between(x_reject_high, y_reject_high, alpha=0.6, color='red', label=f'Too large ({p_reject_high*100:.1f}%)')
-            
-            ax.plot(x, y, 'b-', linewidth=2)
-            ax.axvline(target_diameter, color='black', linestyle='-', linewidth=2, label='Target')
-            ax.axvline(lower_spec, color='red', linestyle='--', label='Lower limit')
-            ax.axvline(upper_spec, color='red', linestyle='--', label='Upper limit')
-            
-            ax.set_xlabel('Bolt Diameter (mm)')
-            ax.set_ylabel('Probability Density')
-            ax.set_title('Quality Control Distribution')
-            ax.legend()
-            ax.grid(True, alpha=0.3)
-            
-            st.pyplot(fig)
-    
-    elif problem_type == "📈 Financial Analysis":
-        st.subheader("Investment Risk Analysis")
-        
-        st.markdown("""
-        **Problem:** An investment portfolio has historically returned 8% annually with a standard deviation of 12%.
-        An investor wants to understand the probability of different return scenarios.
-        """)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            expected_return = st.slider("Expected annual return (%)", 0, 20, 8)
-            volatility = st.slider("Volatility (std dev) (%)", 5, 25, 12)
-            
-            # Calculate probabilities for different scenarios
-            prob_loss = stats.norm.cdf(0, expected_return, volatility) * 100
-            prob_double_digit = (1 - stats.norm.cdf(10, expected_return, volatility)) * 100
-            prob_large_loss = stats.norm.cdf(-20, expected_return, volatility) * 100
-            
-            # Value at Risk (5% probability of loss exceeding this amount)
-            var_5 = stats.norm.ppf(0.05, expected_return, volatility)
-            
-            st.markdown(f"""
-            **Risk Analysis:**
-            - Expected return: {expected_return}%
-            - Volatility: {volatility}%
-            
-            **Probability Scenarios:**
-            - Loss (return < 0%): {prob_loss:.1f}%
-            - Double-digit return (>10%): {prob_double_digit:.1f}%
-            - Large loss (<-20%): {prob_large_loss:.1f}%
-            
-            **Risk Metrics:**
-            - Value at Risk (5%): {var_5:.1f}%
-            - 95% confident return will exceed: {var_5:.1f}%
-            - Risk-return ratio: {expected_return/volatility:.2f}
-            """)
-        
-        with col2:
-            # Plot return distribution
-            x = np.linspace(expected_return - 4*volatility, expected_return + 4*volatility, 1000)
-            y = stats.norm.pdf(x, expected_return, volatility)
-            
-            fig, ax = plt.subplots(figsize=(10, 6))
-            
-            # Color different return regions
-            x_loss = x[x < 0]
-            y_loss = stats.norm.pdf(x_loss, expected_return, volatility)
-            ax.fill_between(x_loss, y_loss, alpha=0.6, color='red', label=f'Losses ({prob_loss:.1f}%)')
-            
-            x_modest = x[(x >= 0) & (x <= 10)]
-            y_modest = stats.norm.pdf(x_modest, expected_return, volatility)
-            ax.fill_between(x_modest, y_modest, alpha=0.4, color='yellow', label='Modest gains (0-10%)')
-            
-            x_good = x[x > 10]
-            y_good = stats.norm.pdf(x_good, expected_return, volatility)
-            ax.fill_between(x_good, y_good, alpha=0.4, color='green', label=f'Strong gains (>{prob_double_digit:.1f}%)')
-            
-            ax.plot(x, y, 'b-', linewidth=2)
-            ax.axvline(expected_return, color='black', linestyle='-', linewidth=2, label=f'Expected ({expected_return}%)')
-            ax.axvline(0, color='red', linestyle='--', label='Break-even')
-            ax.axvline(var_5, color='purple', linestyle='--', label=f'VaR 5% ({var_5:.1f}%)')
-            
-            ax.set_xlabel('Annual Return (%)')
-            ax.set_ylabel('Probability Density')
-            ax.set_title('Investment Return Distribution')
-            ax.legend()
-            ax.grid(True, alpha=0.3)
-            
-            st.pyplot(fig)
-    
-    elif problem_type == "🎓 Educational Assessment":
-        st.subheader("Standardized Test Analysis")
-        
-        st.markdown("""
-        **Problem:** The SAT Math section has a mean score of 528 with a standard deviation of 117.
-        A college wants to analyze admission criteria and student performance.
-        """)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            sat_mean = st.slider("SAT Math Mean", 400, 600, 528)
-            sat_std = st.slider("SAT Math Std Dev", 80, 150, 117)
-            admission_cutoff = st.slider("College admission cutoff", 400, 700, 600)
-            
-            # Calculate percentiles and probabilities
-            percentile_cutoff = stats.norm.cdf(admission_cutoff, sat_mean, sat_std) * 100
-            prob_qualify = (1 - stats.norm.cdf(admission_cutoff, sat_mean, sat_std)) * 100
-            
-            # Calculate score ranges
-            score_25th = stats.norm.ppf(0.25, sat_mean, sat_std)
-            score_75th = stats.norm.ppf(0.75, sat_mean, sat_std)
-            score_90th = stats.norm.ppf(0.90, sat_mean, sat_std)
-            
-            st.markdown(f"""
-            **Test Statistics:**
-            - Mean score: {sat_mean}
-            - Standard deviation: {sat_std}
-            - Admission cutoff: {admission_cutoff}
-            
-            **Admission Analysis:**
-            - Students qualifying: {prob_qualify:.1f}%
-            - Cutoff percentile: {percentile_cutoff:.1f}th
-            - Selectivity level: {'Highly selective' if prob_qualify < 25 else 'Moderately selective' if prob_qualify < 50 else 'Less selective'}
-            
-            **Score Benchmarks:**
-            - 25th percentile: {score_25th:.0f}
-            - 75th percentile: {score_75th:.0f}
-            - 90th percentile: {score_90th:.0f}
-            """)
-        
-        with col2:
-            # Plot SAT score distribution
-            x = np.linspace(sat_mean - 4*sat_std, sat_mean + 4*sat_std, 1000)
-            y = stats.norm.pdf(x, sat_mean, sat_std)
-            
-            fig, ax = plt.subplots(figsize=(10, 6))
-            
-            # Color admission regions
-            x_qualify = x[x >= admission_cutoff]
-            y_qualify = stats.norm.pdf(x_qualify, sat_mean, sat_std)
-            ax.fill_between(x_qualify, y_qualify, alpha=0.4, color='green', label=f'Qualify ({prob_qualify:.1f}%)')
-            
-            x_not_qualify = x[x < admission_cutoff]
-            y_not_qualify = stats.norm.pdf(x_not_qualify, sat_mean, sat_std)
-            ax.fill_between(x_not_qualify, y_not_qualify, alpha=0.4, color='lightcoral', label=f'Below cutoff ({100-prob_qualify:.1f}%)')
-            
-            ax.plot(x, y, 'b-', linewidth=2)
-            ax.axvline(sat_mean, color='black', linestyle='-', linewidth=2, label=f'Mean ({sat_mean})')
-            ax.axvline(admission_cutoff, color='red', linestyle='--', linewidth=2, label=f'Cutoff ({admission_cutoff})')
-            ax.axvline(score_75th, color='orange', linestyle=':', label=f'75th percentile ({score_75th:.0f})')
-            
-            ax.set_xlabel('SAT Math Score')
-            ax.set_ylabel('Probability Density')
-            ax.set_title('SAT Score Distribution and Admission Criteria')
-            ax.legend()
-            ax.grid(True, alpha=0.3)
-            
-            st.pyplot(fig)
+            try:
+                x = np.linspace(mu_chol - 4*sigma_chol, mu_chol + 4*sigma_chol, 1000)
+                y = stats.norm.pdf(x, mu_chol, sigma_chol)
+                
+                fig, ax = plt.subplots(figsize=(10, 6))
+                
+                # Color different regions
+                ax.fill_between(x, y, alpha=0.3, color='green', label='Normal range')
+                
+                # Highlight risk zones
+                x_high = x[x > high_normal]
+                y_high = stats.norm.pdf(x_high, mu_chol, sigma_chol)
+                ax.fill_between(x_high, y_high, alpha=0.6, color='red', label='High risk')
+                
+                x_low = x[x < low_normal]
+                y_low = stats.norm.pdf(x_low, mu_chol, sigma_chol)
+                ax.fill_between(x_low, y_low, alpha=0.6, color='orange', label='Low (unusual)')
+                
+                ax.plot(x, y, 'b-', linewidth=2)
+                ax.axvline(mu_chol, color='black', linestyle='-', linewidth=2, label=f'Mean ({mu_chol})')
+                ax.axvline(high_normal, color='red', linestyle='--', label=f'High threshold ({high_normal:.0f})')
+                ax.axvline(low_normal, color='orange', linestyle='--', label=f'Low threshold ({low_normal:.0f})')
+                
+                ax.set_xlabel('Cholesterol Level (mg/dL)')
+                ax.set_ylabel('Probability Density')
+                ax.set_title('Cholesterol Distribution and Reference Ranges')
+                ax.legend()
+                ax.grid(True, alpha=0.3)
+                
+                st.pyplot(fig)
+                plt.close(fig)
+            except Exception as e:
+                st.error(f"Error creating plot: {e}")
 
 elif section == "🧪 Hypothesis Testing":
     st.header("🧪 Hypothesis Testing with Normal Distribution")
@@ -818,35 +624,39 @@ elif section == "🧪 Hypothesis Testing":
         
         with col2:
             # Plot hypothesis test
-            x = np.linspace(-4, 4, 1000)
-            y = stats.norm.pdf(x, 0, 1)
-            
-            fig, ax = plt.subplots(figsize=(10, 6))
-            
-            # Plot standard normal
-            ax.plot(x, y, 'b-', linewidth=2, label='Standard Normal (H₀ true)')
-            
-            # Shade critical regions
-            x_left = x[x < -z_critical]
-            y_left = stats.norm.pdf(x_left, 0, 1)
-            ax.fill_between(x_left, y_left, alpha=0.3, color='red', label=f'Critical region (α/2 = {alpha/2})')
-            
-            x_right = x[x > z_critical]
-            y_right = stats.norm.pdf(x_right, 0, 1)
-            ax.fill_between(x_right, y_right, alpha=0.3, color='red')
-            
-            # Mark test statistic
-            ax.axvline(z_score, color='green', linestyle='--', linewidth=3, label=f'Test statistic (z = {z_score:.3f})')
-            ax.axvline(-z_critical, color='red', linestyle=':', label=f'Critical values (±{z_critical:.3f})')
-            ax.axvline(z_critical, color='red', linestyle=':')
-            
-            ax.set_xlabel('Z-score')
-            ax.set_ylabel('Probability Density')
-            ax.set_title('Hypothesis Test Visualization')
-            ax.legend()
-            ax.grid(True, alpha=0.3)
-            
-            st.pyplot(fig)
+            try:
+                x = np.linspace(-4, 4, 1000)
+                y = stats.norm.pdf(x, 0, 1)
+                
+                fig, ax = plt.subplots(figsize=(10, 6))
+                
+                # Plot standard normal
+                ax.plot(x, y, 'b-', linewidth=2, label='Standard Normal (H₀ true)')
+                
+                # Shade critical regions
+                x_left = x[x < -z_critical]
+                y_left = stats.norm.pdf(x_left, 0, 1)
+                ax.fill_between(x_left, y_left, alpha=0.3, color='red', label=f'Critical region (α/2 = {alpha/2})')
+                
+                x_right = x[x > z_critical]
+                y_right = stats.norm.pdf(x_right, 0, 1)
+                ax.fill_between(x_right, y_right, alpha=0.3, color='red')
+                
+                # Mark test statistic
+                ax.axvline(z_score, color='green', linestyle='--', linewidth=3, label=f'Test statistic (z = {z_score:.3f})')
+                ax.axvline(-z_critical, color='red', linestyle=':', label=f'Critical values (±{z_critical:.3f})')
+                ax.axvline(z_critical, color='red', linestyle=':')
+                
+                ax.set_xlabel('Z-score')
+                ax.set_ylabel('Probability Density')
+                ax.set_title('Hypothesis Test Visualization')
+                ax.legend()
+                ax.grid(True, alpha=0.3)
+                
+                st.pyplot(fig)
+                plt.close(fig)
+            except Exception as e:
+                st.error(f"Error creating plot: {e}")
 
 # Educational Standards and Resources Section
 st.markdown("---")
@@ -871,129 +681,4 @@ with st.expander("📚 Common Core Standards Alignment"):
     - A-CED.A.3: Represent constraints by systems of equations and interpret solutions
     
     **F-IF (Interpreting Functions):**
-    - F-IF.C.7: Graph functions expressed symbolically and show key features
-    - F-IF.B.4: Interpret key features of graphs and tables in context
-    
-    **Mathematical Practices:**
-    - MP1: Make sense of problems and persevere in solving them
-    - MP2: Reason abstractly and quantitatively  
-    - MP3: Construct viable arguments and critique reasoning of others
-    - MP4: Model with mathematics
-    - MP5: Use appropriate tools strategically
-    - MP6: Attend to precision
-    - MP7: Look for and make use of structure
-    - MP8: Look for and express regularity in repeated reasoning
-    """)
-
-# Cognitive Abilities Development
-with st.expander("🧠 Cognitive Abilities Development"):
-    st.markdown("""
-    ### Statistical Reasoning:
-    - **Probabilistic Thinking**: Understanding uncertainty and likelihood in real-world contexts
-    - **Distribution Concepts**: Visualizing how data spreads around central tendencies
-    - **Parameter Relationships**: Connecting mathematical parameters to real-world meanings
-    
-    ### Logical-Mathematical Intelligence:
-    - **Pattern Recognition**: Identifying normal distribution patterns in diverse contexts
-    - **Proportional Reasoning**: Understanding percentiles, z-scores, and standardization
-    - **Algebraic Manipulation**: Working with formulas for mean, standard deviation, and probability
-    
-    ### Critical Thinking Skills:
-    - **Hypothesis Evaluation**: Testing claims using statistical evidence
-    - **Data Interpretation**: Drawing valid conclusions from statistical analyses
-    - **Model Validation**: Assessing whether normal distribution assumptions are reasonable
-    
-    ### Problem-Solving Strategies:
-    - **Statistical Modeling**: Applying normal distribution to real-world problems
-    - **Decision Making**: Using probability to inform choices under uncertainty
-    - **Quality Assessment**: Evaluating processes and outcomes using statistical criteria
-    
-    ### Spatial and Visual Intelligence:
-    - **Graph Interpretation**: Reading and analyzing distribution curves and areas
-    - **Parameter Visualization**: Understanding how μ and σ affect curve shape and position
-    - **Area Relationships**: Connecting geometric areas to probability concepts
-    
-    ### Executive Function Development:
-    - **Multi-step Problem Solving**: Following complex statistical procedures
-    - **Attention to Detail**: Precision in calculations and interpretations
-    - **Working Memory**: Managing multiple statistical concepts simultaneously
-    """)
-
-# Educational Resource Links
-with st.expander("🔗 Educational Resources & Practice"):
-    st.markdown("""
-    ### Khan Academy Resources:
-    
-    **Normal Distribution Foundation:**
-    - [Introduction to Normal Distribution](https://www.khanacademy.org/math/statistics-probability/modeling-distributions-of-data/normal-distributions-library/v/introduction-to-the-normal-distribution)
-    - [Empirical Rule (68-95-99.7)](https://www.khanacademy.org/math/statistics-probability/modeling-distributions-of-data/normal-distributions-library/v/ck12-the-empirical-rule)
-    - [Standard Normal Distribution](https://www.khanacademy.org/math/statistics-probability/modeling-distributions-of-data/normal-distributions-library/v/standard-normal-distribution-and-the-empirical-rule)
-    - [Z-scores and Percentiles](https://www.khanacademy.org/math/statistics-probability/modeling-distributions-of-data/z-scores/v/z-score-introduction)
-    
-    **Advanced Applications:**
-    - [Normal Distribution Problems](https://www.khanacademy.org/math/statistics-probability/modeling-distributions-of-data/normal-distributions-library/v/qualitative-sense-of-normal-distributions)
-    - [Central Limit Theorem](https://www.khanacademy.org/math/statistics-probability/sampling-distributions-library/sample-means/v/central-limit-theorem)
-    - [Hypothesis Testing](https://www.khanacademy.org/math/statistics-probability/significance-tests-one-sample/idea-of-significance-tests/v/simple-hypothesis-testing)
-    
-    ### IXL Practice Modules:
-    
-    **Algebra 2 Level:**
-    - [Identify Normal Distributions](https://www.ixl.com/math/algebra-2/identify-normal-distributions)
-    - [Find Values Using Normal Distribution](https://www.ixl.com/math/algebra-2/find-values-using-normal-distributions)
-    - [Calculate Z-scores](https://www.ixl.com/math/algebra-2/calculate-z-scores)
-    - [Use Empirical Rule](https://www.ixl.com/math/algebra-2/use-normal-distributions-to-approximate-binomial-distributions)
-    
-    **Statistics Level:**
-    - [Normal Distribution Applications](https://www.ixl.com/math/statistics/normal-distribution-calculations)
-    - [Confidence Intervals](https://www.ixl.com/math/statistics/confidence-intervals-for-the-mean-sigma-known)
-    - [Hypothesis Testing](https://www.ixl.com/math/statistics/test-a-claim-about-a-mean-sigma-known)
-    - [Sample Size Calculations](https://www.ixl.com/math/statistics/find-the-sample-size-needed-to-estimate-a-population-mean)
-    
-    ### Additional Online Resources:
-    - **Desmos Graphing Calculator**: Interactive normal distribution exploration
-    - **GeoGebra Statistics**: Dynamic probability and statistics simulations
-    - **StatCrunch**: Real data analysis and hypothesis testing
-    - **Wolfram Alpha**: Statistical calculations and probability computations
-    - **PhET Simulations**: Plinko Probability for hands-on normal distribution
-    """)
-
-# Assessment and Progress Tracking
-with st.expander("📊 Assessment & Progress Tracking"):
-    st.markdown("""
-    ### Formative Assessment Strategies:
-    - **Parameter Prediction**: Guess μ and σ from graph appearance before calculating
-    - **Real-Data Collection**: Measure class data and test for normality
-    - **Probability Estimation**: Estimate areas before using calculators
-    - **Conjecture Testing**: Use interactive tools to verify/disprove statistical claims
-    
-    ### Summative Assessment Options:
-    - **Case Study Projects**: Apply normal distribution to student-chosen real-world context
-    - **Statistical Consulting**: Role-play as statistician solving business/medical problems
-    - **Data Analysis Portfolio**: Collection of normal distribution applications across subjects
-    - **Hypothesis Testing Lab**: Design and conduct original statistical investigations
-    
-    ### Differentiation Strategies:
-    - **Visual Learners**: Graphical emphasis, color-coded regions, area comparisons
-    - **Kinesthetic Learners**: Physical manipulatives, data collection, simulation activities
-    - **Analytical Learners**: Formula derivations, mathematical proofs, computational focus
-    - **Creative Learners**: Real-world connections, story problems, cross-curricular applications
-    - **English Language Learners**: Visual supports, bilingual statistical glossaries
-    
-    ### Technology Integration:
-    - **Spreadsheet Skills**: Excel/Google Sheets for statistical calculations
-    - **Programming Introduction**: Python/R for advanced statistical analysis
-    - **Online Simulations**: Interactive probability demonstrations
-    - **Graphing Calculator**: Ti-84 statistical functions and applications
-    """)
-
-st.markdown("---")
-st.markdown("""
-### 🎯 Learning Extensions:
-- **Collect Real Data**: Measure heights, test scores, or reaction times to create actual normal distributions
-- **Research Applications**: Investigate how normal distribution is used in your career interest area
-- **Statistical Software**: Learn Excel, R, or Python for advanced statistical analysis
-- **Historical Context**: Study the contributions of Gauss, Pearson, and other statistical pioneers
-- **Cross-Curricular Connections**: Apply normal distribution concepts in science labs and social studies research
-
-*MathCraft modules are designed to meet rigorous academic standards while fostering deep conceptual understanding through hands-on exploration and real-world applications.*
-""")
+    -
