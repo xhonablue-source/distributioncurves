@@ -1,21 +1,5 @@
-# MathCraft Normal Distribution Module - Streamlit Cloud Compatible
-# Core Framework
-streamlit==1.28.0
-pandas==2.0.3
-numpy==1.24.3
-
-# Essential Statistical Computing
-scipy==1.11.1
-
-# Visualization Libraries
-matplotlib==3.7.2
-plotly==5.15.0
-
-# Mathematical Computing
-sympy==1.12
-
-# File Processing (minimal)
-openpyxl==3.1.2
-
-# Version Constraints for Stability
-python>=3.8,<3.12
+streamlit>=1.28.0
+numpy>=1.21.0
+matplotlib>=3.5.0
+scipy>=1.9.0
+pandas>=1.3.0
