@@ -681,4 +681,16 @@ with st.expander("📚 Common Core Standards Alignment"):
     - A-CED.A.3: Represent constraints by systems of equations and interpret solutions
     
     **F-IF (Interpreting Functions):**
-    -
+    - F-IF.C.7: Graph functions expressed symbolically and show key features
+    - F-IF.B.4: Interpret key features of graphs and tables in context
+    
+    **Mathematical Practices:**
+    - MP1: Make sense of problems and persevere in solving them
+    - MP2: Reason abstractly and quantitatively  
+    - MP3: Construct viable arguments and critique reasoning of others
+    - MP4: Model with mathematics
+    - MP5: Use appropriate tools strategically
+    - MP6: Attend to precision
+    - MP7: Look for and make use of structure
+    - MP8: Look for and express regularity in repeated reasoning
+    """)
